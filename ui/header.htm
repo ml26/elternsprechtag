@@ -1,0 +1,26 @@
+<div class="topBar">
+	
+	<span class="topBarItem"><a href="/">HOME</a></span>
+
+	<span class="topBarItem"><a href="/lehrer/1">Termine reservieren</a></span>
+	<span class="topBarItem"><a href="/reservierungen">Meine Termine</a></span>
+	<span class="topBarItem"><a href="/impressum">Kontakt/Impressum</a></span>
+
+	<span class="topBarItem">|</span>
+	<span class="topBarItem"><a href="/logout">logout</a></span>
+	
+	<check if="{{ isset(@isAdmin) && @isAdmin }}">
+		<span class="topBarItem">|</span>
+		<span class="topBarItem"><a href="/admin/index">Admin Werkzeuge</a></span>
+		<span class="topBarItem"><a href="/admin/logout">Admin Logout</a></span>
+	</check>
+	
+	
+</div>
+
+<check if="{{ @varExists('settings.isLocked') && filter_var(@settings.isLocked, FILTER_VALIDATE_BOOLEAN) }}">
+	<h4><FONT COLOR="red">
+	Es k&ouml;nnen zurzeit keine Reservierungen vorgenommen werden. <br/>
+	Die Einsichtnahme in Ihre eigenen Termine und der Ausdruck sind jederzeit m&ouml;glich.
+	</FONT></h4><br/>
+</check>

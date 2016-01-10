@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<include href="htmlHead.htm" />
+		<title>Meine Reservierungen</title>
+	</head>
+
+	<body>
+		<include href="header.htm" />
+		
+		<br/> 
+		
+		<check if="{{ @reservations }}">
+			<true>
+				<h3>Reservierte Termine f&uuml;r '{{ @schuelerName }}'</h3>
+			
+				<table class="tabNoBorder" cellpadding="4" cellspacing="0">
+				<tbody>
+				<tr>
+					<th>Zeit</th>
+					<th>Lehrer</th>
+					<th>Raum</th>
+				</tr>
+				
+				<repeat group="{{ @reservations }}" value="{{ @reservation }}" counter="{{ @ctr }}">
+					<tr>
+						<td>{{ @reservation.zeit }}</td>
+						<td>{{ @reservation.lehrer_name }}</td>
+						<td>{{ @reservation.raum }}</td>
+					</tr>
+				</repeat>
+				
+				</tbody>
+				</table>
+			</true>
+			<false>
+				<h3>Sie haben noch keine Termine reserviert</h3>
+			</false>
+		</check>
+		
+		<p>Tipp: Drucken Sie diese Seite vor dem Besuch des Elternsprechtags aus. </p>
+
+		<p>An der T&uuml;r jeder Lehrperson h&auml;ngt eine &Uuml;bersichtsliste mit allen reservierten Terminen. Dort k&ouml;nnen Sie noch w&auml;hrend des Elternsprechtags h&auml;ndisch freie Termine belegen.</p>
+	</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<include href="htmlHead.htm" />
+		<title>Lehrer: {{ @curLehrer.name }}</title>
+	</head>
+
+	<body>
+		<include href="header.htm" />
+		
+		<div class="container">
+		
+			<div class="leftBar">
+				<h4>Lehrer:</h4>
+				<ul>
+					<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
+						<li>
+							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'<b>':'' }}
+							<a href="/lehrer/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
+							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'</b>':'' }}
+						</li>
+					</repeat>
+				</ul>
+			</div>
+			
+			<div class="content">
+				<h3>{{ @curLehrer.name }}</h3>
+				<p>Raum: {{ @curLehrer.raum }}</p>
+
+				<table class="tabNoBorder" cellpadding="4" cellspacing="0">
+				<tbody>
+					<tr>
+						<th>Zeit</th>
+						<th>Status</th>
+						<th>Aktion</th>
+					</tr>
+					
+					<repeat group="{{ @reservations }}" value="{{ @reservation }}" counter="{{ @ctr }}">
+						<tr class="{{ @ctr%2?'unevenRow':'evenRow' }}">
+							<td>{{ @reservation.zeit }}</td>
+							
+							<check if="{{ @reservation.kollision_lehrer_id != null }}">
+								<true>
+									{{* ####### Kollision ####### *}}
+									<td class="vergeben">{{ @reservation.schueler_id==null?'Frei':'Vergeben' }}</td>
+									<td>Sie haben um {{ @reservation.zeit }} schon bei 
+										<a href="/lehrer/{{ @reservation.kollision_lehrer_id }}">{{ @reservation.kollision_lehrer_name }}</a> 
+										reserviert
+									</td>
+								</true>
+								<false>
+									<check if="{{ @reservation.schueler_id == null }}">
+										<true>
+											{{* ####### Frei ####### *}}
+											<td class="unreserviert">Frei</td>
+											<td>
+												<check if="{{ !@isLocked }}">
+													<form action="/lehrer/{{ @curLehrer.lehrer_id }}/reserve" method="post">
+														<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
+														<input type="submit" value="Reservieren"/>
+													</form>
+												</check>
+											</td>
+										</true>
+										<false>
+											<check if="{{ @reservation.schueler_id == @curUserId }}">
+												<true>
+													{{* ####### Reserviert ####### *}}
+													<td class="reserviert">Reserviert</td>
+													<td>
+														<check if="{{ !@isLocked }}">
+															<form action="/lehrer/{{ @curLehrer.lehrer_id }}/release" method="post">
+																<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
+																<input type="submit" value="Reservierung aufheben"/>
+															</form>
+														</check>
+													</td>
+												</true>
+												<false>
+													{{* ####### Vergeben ####### *}}
+													<td class="vergeben">Vergeben</td>
+													<td></td>
+												</false>
+											</check>
+										</false>
+									</check>
+								</false>
+							</check>
+						</tr>
+					</repeat>
+				</tbody>
+				</table>
+			</div>
+		</div>
+	</body>
+</html>

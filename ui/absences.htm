@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<include href="htmlHead.htm" />
+		<title>Zeiten sperren</title>
+	</head>
+
+	<body>
+		<include href="header.htm" />
+		
+		<div class="container">
+		
+			<div class="leftBar">
+				<h4>Lehrer:</h4>
+				<ul>
+					<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
+						<li>
+							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'<b>':'' }}
+							<a href="/admin/absences/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
+							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'</b>':'' }}
+						</li>
+					</repeat>
+				</ul>
+			</div>
+			
+			<div class="content">
+				<h3>{{ @curLehrer.name }}</h3>
+				
+				<table class="tabNoBorder" cellpadding="4" cellspacing="0">
+				<tbody>
+				<tr>
+					<th>Zeit</th>
+					<th>Status</th>
+					<th>Aktion</th>
+				</tr>
+				
+				<repeat group="{{ @absences }}" value="{{ @absence }}">
+					<tr class="{{ @absence.is_absent?'gesperrt':'nichtGesperrt' }}">
+						<td>{{ @absence.zeit }}</td>
+						<td>{{ @absence.is_absent?"Gesperrt":"Nicht gesperrt" }}</td>
+						<td>
+							<form action="/admin/absences/{{ @curLehrer.lehrer_id }}/{{ @absence.is_absent?'remove':'add' }}" method="post">
+								<input type="hidden" name="zeitId" value="{{ @absence.zeit_id }}"/>
+								<input type="submit" value="{{ @absence.is_absent?"Entsperren":"Sperren" }}"/>
+							</form>
+						</td>
+					</tr>
+				</repeat>
+			</div>
+		</div>
+	</body>
+</html>

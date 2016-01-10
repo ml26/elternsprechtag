@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<include href="htmlHead.htm" />
+		<title>Lehrerauswertung</title>
+	</head>
+
+	<body>
+		<!-- Word doesn't properly copy CSS styles from CSS files, therefore use inline styles instead -->
+
+		<table style="border:0px solid white;border-collapse:collapse;" cellpadding="4" cellspacing="0">
+			<tbody>
+
+				{{ @curLehrerName = "" }}
+				<repeat group="{{ @reservations }}" value="{{ @reservation }}">
+					
+					<check if="{{ @reservation.lehrer_name != @curLehrerName }}">
+						{{ (@curLehrerName = @reservation.lehrer_name) ? "" : "" }}
+						<tr>
+							<td align="center" colspan="2" ><h1>{{ @reservation.lehrer_name }}</h1></td>
+						</tr>
+						<tr>
+							<td style="border:1px solid black;"><b>Zeit</b></td>
+							<td style="border:1px solid black;"><b>Reserviert f&uuml;r</b></td>
+						</tr>
+					</check>
+					
+
+					<tr>
+						<td style="border:1px solid black;">{{ @reservation.zeit }}</td>
+						<td style="border:1px solid black;"  class="lehrerAuswertungNameCol">{{ (@reservation.schueler_name==null)?"":@reservation.schueler_name }}</td>
+					</tr>
+
+				</repeat>
+			</tbody>
+		</table>
+		
+	</body>
+</html>

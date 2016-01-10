@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<include href="htmlHead.htm" />
+		<title>Startseite</title>
+	</head>
+	<body>	
+		<include href="header.htm" />
+		
+		<ul>
+			<li>
+				<h3>Lehrerauswertung</h3>
+				<a href="/admin/reservationsReport" target="_blank">Lehrerauswertung</a>
+			</li>
+
+			<li>
+				<h3>Reservierungen sperren/entsperren</h3>
+				Aktion: <a href="/admin/lock?newLockStatus=true">Sperren</a><span> - </span>
+				<a href="/admin/lock?newLockStatus=false">Entsperren</a>
+				<br/>
+				Derzeit: {{ (@varExists('settings.isLocked') && filter_var(@settings.isLocked, FILTER_VALIDATE_BOOLEAN)) ? "gesperrt" : "nicht gesperrt" }}
+			</li>
+
+			<li>
+				<h3>Exceldatei hochladen und in DB importieren</h3>
+				<form method="post" action="/admin/scriptUpload" enctype="multipart/form-data">
+				Exceldatei (*.xlsx): <input type="file" name="sqlFile" /> <span> </span>
+				<input type="submit" value="Hochladen und ausf&uuml;hren" /><br/>
+				<FONT COLOR="red">Vorsicht!!! Datei wird nach dem Upload ohne R&uuml;ckfrage importiert!</FONT>
+				</form> 
+
+				<check if="{{ @varExists('scriptResult') }}">
+					<check if="{{ @scriptResult }}">
+						<true>
+							<br/><FONT COLOR="red">Folgender Fehler ist aufgetreten:</FONT> <br/>
+							{{ @scriptResult }}
+						</true>
+						<false>
+							<br/><FONT COLOR="green">Datei wurde ohne Fehler importiert</FONT>
+						</false>
+					</check>
+				</check>
+			</li>
+
+			<li>
+				<h3>SQL-Konsole</h3>
+				<a href="/admin/sql">SQL Konsole</a>
+			</li>
+
+			<li>
+				<h3>Datenbank-Sicherung</h3>
+				Folgenden Link anklicken, die angebotene Datei speichern und bei Bedarf oben bei "Exceldatei hochladen" hochladen, um die Datensicherung zur&uuml;ckzuspielen: <br/>
+				<a href="/admin/dumpDatabase">Datenbank-Inhalt exportieren</a>
+			</li>
+
+			<li>
+				<h3>Lehrer/Zeiten sperren</h3>
+				<a href="/admin/absences/1">Lehrer/Zeiten sperren</a>
+			</li>
+		</ul>
+	</body>
+</html>

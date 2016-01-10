@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<include href="htmlHead.htm" />
+		<title>SQL Prompt</title> 
+	</head>
+	<body>
+		<form method="post">
+			SQL:<br/> 
+			<textarea rows="12" cols="150" name="sqlQuery">{{ @originalQuery }}</textarea><br/>
+			<input type="submit" value="Go" />
+		</form>
+		
+		<check if="{{ is_array(@sqlResult) }}">
+			<true>
+				<h3>Result:</h3>
+				<check if="{{ @sqlResult }}">
+					<true>
+						<table border="1" cellpadding="4" cellspacing="0">
+							<tr>
+							<repeat group="{{ @sqlResult[0] }}" key="{{ @colName }}" value="{{ @colValue }}">
+								<th>{{ @colName }}</th>
+							</repeat>
+							</tr>
+							<repeat group="{{ @sqlResult }}" key="{{ @rowIndex }}" value="{{ @rowValue }}">
+								<tr>
+									<repeat group="{{ @rowValue }}" key="{{ @colName }}" value="{{ @colValue }}">
+										<td>{{ @colValue }}</td>
+									</repeat>
+								</tr>
+							</repeat>
+						</table>
+					</true>
+					<false>
+						<span>(0 rows returned)</span>
+					</false>
+				</check>
+			</true>
+		</check>
+		
+		<check if="{{ @error }}">
+			<true>
+				<h3>Error:</h3>
+				{{ @error }}
+			</true>
+		</check>
+		
+	</body>
+</html>
