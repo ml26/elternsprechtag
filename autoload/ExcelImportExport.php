@@ -119,6 +119,7 @@ class ExcelImportExport
 			ExcelImportExport::$lastExecutedStatement = $statement;
 			$db->exec($statement);
 		}
+		ExcelImportExport::writeDefaultSettings($db);
 		
 		$temp = '';
 		return $temp;
@@ -180,6 +181,30 @@ class ExcelImportExport
 			FOREIGN KEY (lehrer_id) REFERENCES LEHRER(lehrer_id),
 			FOREIGN KEY (zeit_id) REFERENCES ZEITEN(zeit_id)
 		);");
+		
+		//
+	}
+	
+	private static function writeDefaultSetting($db, $name, $value) {
+		$result = $db->exec("
+			INSERT INTO EINSTELLUNGEN (name, wert)
+			SELECT :name, :value
+			WHERE NOT EXISTS
+			(
+				SELECT 1
+				FROM EINSTELLUNGEN
+				WHERE name = :name
+			)", 
+			array(':name'=>$name, ':value'=>$value)
+		);
+	}
+	
+	private static function writeDefaultSettings($db) {
+		ExcelImportExport::writeDefaultSetting($db, 'adminPassword', 'change_me');
+		ExcelImportExport::writeDefaultSetting($db, 'endTime', '03.12.2014 (08:00 Uhr)');
+		ExcelImportExport::writeDefaultSetting($db, 'isLocked', 'false');
+		ExcelImportExport::writeDefaultSetting($db, 'startTime', '4. Dezember 2014 (14:00 - 19:00 Uhr)');
+		
 	}
 	
 	private static function importTableFromExcel($objPHPExcel, $tableName) {
