@@ -1,3 +1,5 @@
 tmp/
+imports/*.xlsx
+exports/*.xlsx
+db/*.sqlite
 
-*.xlsx
