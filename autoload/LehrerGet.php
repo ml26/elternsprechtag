@@ -23,6 +23,8 @@ class LehrerGet extends HandlerBase
 		$f3->set('isLocked', filter_var($f3->get('settings.isLocked'), FILTER_VALIDATE_BOOLEAN));
 		$f3->set('curUserId', $f3->get('COOKIE.user_id'));
 		
+		$f3->set('error', $f3->get('GET.errorMessage'));
+		
 		echo Template::instance()->render('reservations.htm');
     }
 }

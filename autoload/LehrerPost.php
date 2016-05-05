@@ -3,6 +3,7 @@ class LehrerPost extends HandlerBase
 {
 	function reserve($f3, $params) {
 		$lehrerId = $params['id'];
+		$errorQueryString = '';
 		if( $f3->exists('POST.zeitId') ) {
 			try {
 				$zeitId = $f3->get('POST.zeitId');
@@ -18,9 +19,15 @@ class LehrerPost extends HandlerBase
 			} catch (Exception $e) {
 				Logger::Error($f3, "LehrerPost.reserve", 
 					"Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
+					
+				if (strpos($e->getMessage(), 'PDOStatement: UNIQUE constraint failed') !== false) {
+					$errorQueryString = '?errorMessage=Nur eine Reservierung pro Lehrer möglich';
+				} else {
+					$errorQueryString = '?errorMessage=Reservierung konnte nicht durchgeführt werden';
+				}
 			}
 		}
-		$f3->reroute('/lehrer/'.$lehrerId);
+		$f3->reroute('/lehrer/'.$lehrerId.$errorQueryString);
     }
 	
 	function release($f3, $params) {

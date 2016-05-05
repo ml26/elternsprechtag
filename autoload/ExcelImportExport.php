@@ -165,10 +165,11 @@ class ExcelImportExport
 			lehrer_id INTEGER NOT NULL,
 			zeit_id INTEGER NOT NULL,
 			schueler_id INTEGER NOT NULL,
-			PRIMARY KEY(lehrer_id, zeit_id),
+			PRIMARY KEY (lehrer_id, zeit_id),
 			FOREIGN KEY (lehrer_id) REFERENCES LEHRER(lehrer_id),
 			FOREIGN KEY (zeit_id) REFERENCES ZEITEN(zeit_id),
-			FOREIGN KEY (schueler_id) REFERENCES SCHUELER(schueler_id)
+			FOREIGN KEY (schueler_id) REFERENCES SCHUELER(schueler_id),
+			UNIQUE (lehrer_id, schueler_id)
 		);");
 		$db->exec("
 		CREATE TABLE SPERRUNGEN
@@ -188,8 +189,6 @@ class ExcelImportExport
 		$highestRow = $activeSheet->getHighestRow(); // e.g. 10
 		$highestColumn = $activeSheet->getHighestColumn(); // e.g 'F'
 		$highestColumnIndex = PHPExcel_Cell::columnIndexFromString($highestColumn); // e.g. 5
-		
-		//INSERT INTO LEHRER (lehrer_id, name, raum, ) VALUES (1, 'Dupovac Carmen', '1A-Kl. 2. OG', )
 		
 		$insertTemplate = 'INSERT INTO ' . $tableName . ' (';
 		$strFormatBuilder = '';
