@@ -89,6 +89,14 @@ class AdminPost extends HandlerBase
 		}
 		$f3->reroute('/admin/absences/'.$lehrerId);
     }
+	
+	function changePassword($f3, $params) {
+		$this->ensureAdmin($f3);
+		$newPassword = $f3->get('POST.password');
+		Logger::Info($f3, "AdminPost.changePassword", "Changing the admin password");
+		DbWrapper::updateEinstellung($f3->get('db'), 'adminPassword', $newPassword);
+		$f3->reroute('/admin/index');
+    }
 }
 
 ?>

@@ -2,8 +2,8 @@
 class HandlerBase
 {
 	function beforeRoute($f3) {
-		$this->setAdminVar($f3);
 		$this->getSettings($f3);
+		$this->setAdminVar($f3);
 		$f3->set('varExists',
 			function($varName) use ($f3) {
 				return $f3->exists($varName);
@@ -15,7 +15,7 @@ class HandlerBase
     }
 	
 	function setAdminVar($f3) {
-		if ($f3->exists('COOKIE.root_secret') && $f3->get('COOKIE.root_secret') === '2136825143872894') {
+		if ($f3->exists('COOKIE.admin_secret') && $f3->get('COOKIE.admin_secret') === $this->getAdminSecret($f3)) {
 			$f3->set('isAdmin', true);
 		} else {
 			$f3->set('isAdmin', false);
@@ -23,7 +23,8 @@ class HandlerBase
 	}
 
 	function ensureAdmin($f3) {
-		if ($f3->exists('COOKIE.root_secret') && $f3->get('COOKIE.root_secret') === '2136825143872894') {
+		$adminSecret = $this->getAdminSecret($f3);
+		if ($f3->exists('COOKIE.admin_secret') && $f3->get('COOKIE.admin_secret') === $adminSecret) {
 			$f3->set('isAdmin', true);
 			return true;
 		} else {
@@ -42,8 +43,8 @@ class HandlerBase
 			Logger::Info($f3, "HandlerBase.ensureAdmin",
 				"Login attempt with user '{$user}', pass '{$password}' from '{$source}'");
 			
-			if($user == 'root2' && $password == 'al1' ) {
-				$f3->set('COOKIE.root_secret', '2136825143872894');
+			if($user == 'admin' && $password == $f3->get('settings.adminPassword') ) {
+				$f3->set('COOKIE.admin_secret', $adminSecret);
 				$f3->set('isAdmin', true);
 				return true;
 			} else {
@@ -58,6 +59,11 @@ class HandlerBase
 				return false;
 			}
 		}
+	}
+	
+	function getAdminSecret($f3) {
+		$adminPassword = $f3->get('settings.adminPassword') || '123456';
+		return hash('sha256', 'mySaltySalt'.$adminPassword);
 	}
 
 	function isLoggedIn($f3) {

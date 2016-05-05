@@ -15,7 +15,7 @@ class AdminGet extends HandlerBase
     }
 	
 	function logout($f3) {
-		$f3->clear('COOKIE.root_secret');
+		$f3->clear('COOKIE.admin_secret');
 		$_SERVER['PHP_AUTH_PW'] = 'xyz';
 		Logger::Info($f3, "AdminGet.logout", "Logged out");
 		$f3->reroute('/');
