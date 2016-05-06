@@ -1,26 +1,30 @@
-<div class="topBar">
+<nav class="navbar navbar-default">
+	<div class="navbar-header">
+		<img class="navbar-brand" src="/ui/images/icon.png" />
+    </div>
+	<ul class="nav navbar-nav">
+		<li class="{{ @location == 'home' ? 'active' : '' }}">
+			
+			<a href="/">HOME</a></li>
+		<li class="{{ @location == 'lehrer_reserve' ? 'active' : '' }}"><a href="/lehrer/1">Termine reservieren</a></li>
+		<li class="{{ @location == 'user_summary' ? 'active' : '' }}"><a href="/reservierungen">Meine Termine</a></li>
+		<li class="{{ @location == 'impressum' ? 'active' : '' }}"><a href="/impressum">Kontakt/Impressum</a></li>
+		<check if="{{ isset(@isAdmin) && @isAdmin }}">
+			<li class="{{ @location == 'admin_index' ? 'active' : '' }}"><a href="/admin/index">Admin Werkzeuge</a></li>
+		</check>
+	</ul>
 	
-	<span class="topBarItem"><a href="/">HOME</a></span>
-
-	<span class="topBarItem"><a href="/lehrer/1">Termine reservieren</a></span>
-	<span class="topBarItem"><a href="/reservierungen">Meine Termine</a></span>
-	<span class="topBarItem"><a href="/impressum">Kontakt/Impressum</a></span>
-
-	<span class="topBarItem">|</span>
-	<span class="topBarItem"><a href="/logout">logout</a></span>
-	
-	<check if="{{ isset(@isAdmin) && @isAdmin }}">
-		<span class="topBarItem">|</span>
-		<span class="topBarItem"><a href="/admin/index">Admin Werkzeuge</a></span>
-		<span class="topBarItem"><a href="/admin/logout">Admin Logout</a></span>
-	</check>
-	
-	
-</div>
+	<ul class="nav navbar-nav navbar-right">
+		<check if="{{ isset(@isAdmin) && @isAdmin }}">
+			<li><a href="/admin/logout">Admin Logout</a></li>
+		</check>
+		<li><a href="/logout">logout</a></li>
+	</ul>
+</nav>
 
 <check if="{{ @varExists('settings.isLocked') && filter_var(@settings.isLocked, FILTER_VALIDATE_BOOLEAN) }}">
-	<h4><FONT COLOR="red">
-	Es k&ouml;nnen zurzeit keine Reservierungen vorgenommen werden. <br/>
+	<div class="alert alert-warning" role="alert">
+		Es k&ouml;nnen zurzeit keine Reservierungen vorgenommen werden. <br/>
 	Die Einsichtnahme in Ihre eigenen Termine und der Ausdruck sind jederzeit m&ouml;glich.
-	</FONT></h4><br/>
+	</div>
 </check>

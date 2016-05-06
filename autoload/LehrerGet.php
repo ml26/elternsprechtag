@@ -11,6 +11,8 @@ class LehrerGet extends HandlerBase
 	function lehrer($f3,$params) {
 		$db = $f3->get('db');
 		
+		$f3->set('location', 'lehrer_reserve');
+		
 		$curLehrer = DbWrapper::getLehrerById($db, $params['id']);
 		$f3->set('curLehrer', $curLehrer);
 	

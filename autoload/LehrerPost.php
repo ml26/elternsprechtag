@@ -21,7 +21,7 @@ class LehrerPost extends HandlerBase
 					"Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
 					
 				if (strpos($e->getMessage(), 'PDOStatement: UNIQUE constraint failed') !== false) {
-					$errorQueryString = '?errorMessage=Nur eine Reservierung pro Lehrer möglich';
+					$errorQueryString = '?errorMessage=Sie haben bei diesem Lehrer bereits einen anderen Termin gebucht';
 				} else {
 					$errorQueryString = '?errorMessage=Reservierung konnte nicht durchgeführt werden';
 				}

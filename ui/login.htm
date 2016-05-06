@@ -5,31 +5,39 @@
 		<title>Anmelden</title>
 	</head>
 	<body>	
-		<h3>Anmelden</h3>
-		<p>Melden Sie sich hier an, um Gespr&auml;chstermine f&uuml;r den Elternsprechtag des Missions-Privatgymnasiums St. Rupert zu reservieren.</p>
-		<p>W&auml;hlen Sie den Namen Ihres Kindes aus:</p>
+		<div class="container">
+			<h3>Anmelden</h3>
+			
+			<br/>
+			
+			<p>Melden Sie sich hier an, um Gespr&auml;chstermine f&uuml;r den Elternsprechtag des Missions-Privatgymnasiums St. Rupert zu reservieren.</p>
+			<p>W&auml;hlen Sie den Namen Ihres Kindes aus:</p>
 
-		<div style="background-color: #EEEEEE;">
-			<form method="post">
-				Name: 
-				<select name="schueler_name">
-					<option value="" selected disabled></option>
-					<repeat group="{{ @allSchueler }}" value="{{ @schueler }}">
-						<option>{{ @schueler['name'] }}</option>
-					</repeat>
-				</select>
-				<input type="submit" value="Anmelden" /><br/>
+			<form method="post" class="form form-inline">
+				<div class="form-group">
+					<label for="schueler_name">Name:</label>
+					<select name="schueler_name" id="schueler_name" class="form-control">
+						<option value="" selected disabled></option>
+						<repeat group="{{ @allSchueler }}" value="{{ @schueler }}">
+							<option>{{ @schueler['name'] }}</option>
+						</repeat>
+					</select>
+				</div>
+				<input type="submit" value="Anmelden" class="form-control" /><br/>
 			</form> 
-		</div>
+			
+			<br/><br/>
 
-		<p>
-			Falls Sie bereits Reservierungen vorgenommen haben, k&ouml;nnen Sie sp&auml;ter jederzeit per Internet (PC, Smartphone, ...) wieder einsteigen und Ihre Eingaben weiter bearbeiten:
-			<ul>
-				<li>Terminbuchungen t&auml;tigen / l&ouml;schen</li>
-				<li>Ausdruck einer &Uuml;bersichtsliste aller gebuchten Termine</li>
-			</ul>
-		</p>
-		<p>Bei Unklarheiten wenden Sie sich bitte an die Schule: <a href="mailto:sekretariat@gym-st-rupert.at">sekretariat@gym-st-rupert.at</a></p>
-		
-		<p><a href="admin/login">Administratorzugang</a></p>
+			<p>
+				Falls Sie bereits Reservierungen vorgenommen haben, k&ouml;nnen Sie sp&auml;ter jederzeit per Internet (PC, Smartphone, ...) wieder einsteigen und Ihre Eingaben weiter bearbeiten:
+				<ul>
+					<li>Terminbuchungen t&auml;tigen / l&ouml;schen</li>
+					<li>Ausdruck einer &Uuml;bersichtsliste aller gebuchten Termine</li>
+				</ul>
+			</p>
+			<p>Bei Unklarheiten wenden Sie sich bitte an die Schule: <a href="mailto:sekretariat@gym-st-rupert.at">sekretariat@gym-st-rupert.at</a></p>
+			
+			<br/><br/><br/>
+			<p class="text-xs-right"><a href="admin/login">Administratorzugang</a></p>
+		</div>
 </html>

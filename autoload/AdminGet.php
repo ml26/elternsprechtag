@@ -29,6 +29,7 @@ class AdminGet extends HandlerBase
     }
 	
 	function index($f3) {
+		$f3->set('location', 'admin_index');
 		echo Template::instance()->render('adminIndex.htm');
     }
 	

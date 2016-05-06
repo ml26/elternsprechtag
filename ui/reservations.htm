@@ -6,33 +6,29 @@
 	</head>
 
 	<body>
-		<include href="header.htm" />
-		
 		<div class="container">
-		
-			<div class="leftBar">
-				<h4>Lehrer:</h4>
-				<ul>
+			<include href="header.htm" />
+
+			<div class="col-md-2">
+				<div class="panel panel-default">
+				<div class="panel-heading">Lehrer</div>
 					<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
-						<li>
-							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'<b>':'' }}
-							<a href="/lehrer/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
-							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'</b>':'' }}
-						</li>
+						<a class="list-group-item {{@curLehrer.lehrer_id==@lehrer.lehrer_id?'active':''}}"
+							href="/lehrer/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
 					</repeat>
-				</ul>
+				</div>
 			</div>
-			
-			<div class="content">
-				<h3>{{ @curLehrer.name }}</h3>
+		
+			<div class="col-md-10">
+				<h2>{{ @curLehrer.name }}</h2>
 				<p>Raum: {{ @curLehrer.raum }}</p>
 				<check if="{{ @varExists('error') }}">
-					<true>
-						<FONT COLOR="red"><p>Fehler: {{ @error }}</p></FONT>
-					</true>
+					<div class="alert alert-danger" role="alert">
+						<strong>Fehler: </strong> {{ @error }}
+					</div>
 				</check>
 				
-				<table class="tabNoBorder" cellpadding="4" cellspacing="0">
+				<table class="table table-striped table-hover table-condensed">
 				<tbody>
 					<tr>
 						<th>Zeit</th>
@@ -41,56 +37,54 @@
 					</tr>
 					
 					<repeat group="{{ @reservations }}" value="{{ @reservation }}" counter="{{ @ctr }}">
-						<tr class="{{ @ctr%2?'unevenRow':'evenRow' }}">
-							<td>{{ @reservation.zeit }}</td>
-							
-							<check if="{{ @reservation.kollision_lehrer_id != null }}">
+						<check if="{{ @reservation.status == 'kollision' }}">
+							<tr class="info">
+							<td>{{ @reservation.zeit }} </td>
+							<check if="{{ @reservation.schueler_id==null }}">
 								<true>
-									{{* ####### Kollision ####### *}}
-									<td class="vergeben">{{ @reservation.schueler_id==null?'Frei':'Vergeben' }}</td>
-									<td>Sie haben um {{ @reservation.zeit }} schon bei 
-										<a href="/lehrer/{{ @reservation.kollision_lehrer_id }}">{{ @reservation.kollision_lehrer_name }}</a> 
-										reserviert
-									</td>
+									<td><span class="glyphicon glyphicon-unchecked"/> Frei</td>
 								</true>
 								<false>
-									<check if="{{ @reservation.schueler_id == null }}">
-										<true>
-											{{* ####### Frei ####### *}}
-											<td class="unreserviert">Frei</td>
-											<td>
-												<check if="{{ !@isLocked }}">
-													<form action="/lehrer/{{ @curLehrer.lehrer_id }}/reserve" method="post">
-														<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
-														<input type="submit" value="Reservieren"/>
-													</form>
-												</check>
-											</td>
-										</true>
-										<false>
-											<check if="{{ @reservation.schueler_id == @curUserId }}">
-												<true>
-													{{* ####### Reserviert ####### *}}
-													<td class="reserviert">Reserviert</td>
-													<td>
-														<check if="{{ !@isLocked }}">
-															<form action="/lehrer/{{ @curLehrer.lehrer_id }}/release" method="post">
-																<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
-																<input type="submit" value="Reservierung aufheben"/>
-															</form>
-														</check>
-													</td>
-												</true>
-												<false>
-													{{* ####### Vergeben ####### *}}
-													<td class="vergeben">Vergeben</td>
-													<td></td>
-												</false>
-											</check>
-										</false>
-									</check>
+									<td><span class="glyphicon glyphicon-remove"/> Vergeben</td>
 								</false>
 							</check>
+							<td>Sie haben um {{ @reservation.zeit }} schon bei 
+								<a href="/lehrer/{{ @reservation.kollision_lehrer_id }}">{{ @reservation.kollision_lehrer_name }}</a> 
+								reserviert
+							</td>
+						</check>
+						<check if="{{ @reservation.status == 'frei' }}">
+							<tr>
+							<td>{{ @reservation.zeit }} </td>
+							<td><span class="glyphicon glyphicon-unchecked"/> Frei</td>
+							<td>
+								<check if="{{ !@isLocked }}">
+									<form action="/lehrer/{{ @curLehrer.lehrer_id }}/reserve" method="post">
+										<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
+										<input type="submit" class="btn btn-xs btn-default" value="Reservieren"/>
+									</form>
+								</check>
+							</td>
+						</check>
+						<check if="{{ @reservation.status == 'reserviert' }}">
+							<tr class="success">
+							<td>{{ @reservation.zeit }} </td>
+							<td><span class="glyphicon glyphicon-check"/> Reserviert</td>
+							<td>
+								<check if="{{ !@isLocked }}">
+									<form action="/lehrer/{{ @curLehrer.lehrer_id }}/release" method="post">
+										<input type="hidden" name="zeitId" value="{{ @reservation.zeit_id }}"/>
+										<input type="submit" class="btn btn-xs btn-default" value="Reservierung aufheben"/>
+									</form>
+								</check>
+							</td>
+						</check>
+						<check if="{{ @reservation.status == 'vergeben' }}" >
+							<tr class="warning">
+							<td>{{ @reservation.zeit }} </td>
+							<td><span class="glyphicon glyphicon-remove"/> Vergeben</td>
+							<td></td>
+						</check>
 						</tr>
 					</repeat>
 				</tbody>

@@ -9,6 +9,7 @@ class HandlerBase
 				return $f3->exists($varName);
 			}
 		);
+		$f3->set('location', 'home');
     }
 
     function afterRoute($f3) {

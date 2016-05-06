@@ -124,7 +124,13 @@ class DbWrapper
 				Z.zeit as 'zeit',
 				R.schueler_id as 'schueler_id',
 				R2.lehrer_id as 'kollision_lehrer_id',
-				L2.name as 'kollision_lehrer_name'
+				L2.name as 'kollision_lehrer_name',
+				CASE 
+				   WHEN R2.lehrer_id IS NOT NULL THEN 'kollision'
+				   WHEN R.schueler_id = :schuelerId THEN 'reserviert'
+				   WHEN R.schueler_id IS NOT NULL THEN 'vergeben'
+				   ELSE 'frei'
+				END as 'status'
 			FROM ZEITEN Z
 			LEFT OUTER JOIN RESERVIERUNGEN R ON 
 				Z.zeit_id = R.zeit_id 

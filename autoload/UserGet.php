@@ -34,6 +34,7 @@ class UserGet extends HandlerBase
 	
 	function impressum($f3) {
 		if( $this->isLoggedIn($f3) ) {
+			$f3->set('location', 'impressum');
 			echo Template::instance()->render('impressum.htm');
 		} else {
 			$f3->reroute('/login');
@@ -42,6 +43,8 @@ class UserGet extends HandlerBase
 	
 	function reservierungen($f3) {
 		if( $this->isLoggedIn($f3) ) {
+			$f3->set('location', 'user_summary');
+			
 			$db = $f3->get('db');
 			$f3->set('schuelerName', $this->getCurrentSchuelerName($f3));
 			$f3->set('reservations', DbWrapper::getReservationsByUserId($db, $f3->get('COOKIE.user_id')));

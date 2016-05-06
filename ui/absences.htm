@@ -6,27 +6,23 @@
 	</head>
 
 	<body>
+		<div class="container">
 		<include href="header.htm" />
 		
-		<div class="container">
-		
-			<div class="leftBar">
-				<h4>Lehrer:</h4>
-				<ul>
+			<div class="col-md-2">
+				<div class="panel panel-default">
+				<div class="panel-heading">Lehrer</div>
 					<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
-						<li>
-							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'<b>':'' }}
-							<a href="/admin/absences/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
-							{{ @curLehrer.lehrer_id==@lehrer.lehrer_id?'</b>':'' }}
-						</li>
+						<a class="list-group-item {{@curLehrer.lehrer_id==@lehrer.lehrer_id?'active':''}}"
+							href="/admin/absences/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
 					</repeat>
-				</ul>
+				</div>
 			</div>
 			
-			<div class="content">
+			<div class="col-md-10">
 				<h3>{{ @curLehrer.name }}</h3>
 				
-				<table class="tabNoBorder" cellpadding="4" cellspacing="0">
+				<table class="table table-striped table-hover table-condensed" cellpadding="4" cellspacing="0">
 				<tbody>
 				<tr>
 					<th>Zeit</th>
@@ -35,13 +31,13 @@
 				</tr>
 				
 				<repeat group="{{ @absences }}" value="{{ @absence }}">
-					<tr class="{{ @absence.is_absent?'gesperrt':'nichtGesperrt' }}">
+					<tr class="{{ @absence.is_absent?'warning':'' }}">
 						<td>{{ @absence.zeit }}</td>
 						<td>{{ @absence.is_absent?"Gesperrt":"Nicht gesperrt" }}</td>
 						<td>
-							<form action="/admin/absences/{{ @curLehrer.lehrer_id }}/{{ @absence.is_absent?'remove':'add' }}" method="post">
+							<form class="form form-inline" action="/admin/absences/{{ @curLehrer.lehrer_id }}/{{ @absence.is_absent?'remove':'add' }}" method="post">
 								<input type="hidden" name="zeitId" value="{{ @absence.zeit_id }}"/>
-								<input type="submit" value="{{ @absence.is_absent?"Entsperren":"Sperren" }}"/>
+								<input type="submit" class="btn btn-xs btn-default" value="{{ @absence.is_absent?"Entsperren":"Sperren" }}"/>
 							</form>
 						</td>
 					</tr>

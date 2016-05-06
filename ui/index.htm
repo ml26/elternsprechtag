@@ -5,33 +5,50 @@
 		<title>Startseite</title>
 	</head>
 	<body>	
+		<div class="container">
 		<include href="header.htm" />
 	
 		<h1>Elternsprechtag am {{ @varExists('settings.startTime') ? @settings.startTime : "???" }}</h1>
+		
+		<br/>
 
 		<p>oben am Seitenanfang finden Sie folgende Links zur Navigation:</p>
-		<dl>
-		  <dt><a href="/lehrer/1">Termine reservieren</a></dt>
-		  <dd>Anzeige aller LehrerInnen; klicken Sie auf den Namen der gew&uuml;nschten Person und Sie sehen in der Tabelle daneben alle m&ouml;glichen freien Termine:<br/>
-			<dl>
-			<dt>Status = GR&Uuml;N ("Frei")</dt>
-			<dd><span class="textEmphasis">der Termin ist verf&uuml;gbar</span>; klicken Sie beim gew&uuml;nschten Termin auf die Schaltfl&auml;che "Reservieren"</dd>
-			<dt>Status = GRAU ("Vergeben")</dt>
-			<dd>der Termin ist bereits von jemand anderem gebucht worden und somit nicht mehr verf&uuml;gbar</dd>
-			<dt>Status = BLAU ("Reserviert")</dt>
-			<dd>zu diesem Zeitpunkt haben Sie selber bereits einen Termin bei der Person XY gebucht und k&ouml;nnen somit nicht zeitgleich einen anderen Termin wahrnehmen; Sie k&ouml;nnen aber auf den bereits reservierten Termin wechseln und diesen mit der Schaltfl&auml;che "Reservierung aufheben" wieder freigeben </dd>
-		</dd>
-		  <dt><br/><a href="/reservierungen">Meine Termine</a></dt>
-		  <dd>Wechseln Sie nach den erfolgten Buchungen auf die Seite <a href="/reservierungen">Meine Termine</a> und Sie bekommen <span class="textEmphasis">eine Liste mit allen von Ihnen gebuchten Gespr&auml;chsterminen</span> angezeigt</dd>
-		  
-		  <dt><br/><a href="/logout">logout</a></dt>
-		  <dd>Hiermit melden Sie sich ab; Sie k&ouml;nnen sich sp&auml;ter jederzeit wieder anmelden und weitere Eingaben t&auml;tigen.</dd>
+		<dl class="dl-horizontal">
+			<dt><a href="/lehrer/1">Termine reservieren</a></dt>
+			<dd><p>Anzeige aller LehrerInnen; klicken Sie auf den Namen der gew&uuml;nschten Person und Sie sehen in der Tabelle daneben alle m&ouml;glichen freien Termine:</p>
+				<dl class="dl-horizontal">
+					<dt><p>Frei</p></dt>
+					<dd><strong>der Termin ist verf&uuml;gbar</strong>; klicken Sie beim gew&uuml;nschten Termin auf die Schaltfl&auml;che "Reservieren"</dd>
+					
+					<dt><p class="bg-warning">Vergeben</p></dt>
+					<dd>der Termin ist bereits von jemand anderem gebucht worden und somit nicht mehr verf&uuml;gbar</dd>
+					
+					<dt><p class="bg-success">Reserviert</p></dt>
+					<dd>Sie haben diesen Termin gebucht; Sie k&ouml;nnen ihn mit der Schaltfl&auml;che "Reservierung aufheben" wieder freigeben </dd>
+					
+					<dt><p class="bg-info">Reserviert</p></dt>
+					<dd>zu diesem Zeitpunkt haben Sie selber bereits einen Termin bei der Person XY gebucht und k&ouml;nnen somit nicht zeitgleich einen anderen Termin wahrnehmen; Sie k&ouml;nnen aber auf den bereits reservierten Termin wechseln und diesen mit der Schaltfl&auml;che "Reservierung aufheben" wieder freigeben </dd>
+				</dl>
+			</dd>
+			
+			<dt><a href="/reservierungen">Meine Termine</a></dt>
+			<dd><p>Wechseln Sie nach den erfolgten Buchungen auf die Seite <a href="/reservierungen">Meine Termine</a> und Sie bekommen <strong>eine Liste mit allen von Ihnen gebuchten Gespr&auml;chsterminen</strong> angezeigt</p></dd>
+
+			<dt><a href="/logout">logout</a></dt>
+			<dd>Hiermit melden Sie sich ab; Sie k&ouml;nnen sich sp&auml;ter jederzeit wieder anmelden und weitere Eingaben t&auml;tigen.</dd>
 		</dl> 
+		
+		<br/>
 
-		<p>Dauer eines Gespr&auml;chs <span class="textEmphasis">max. 5 Minuten</span>; l&auml;ngere Gespr&auml;che m&uuml;ssen in den Sprechstunden der LehrerInnen, die allw&ouml;chentlich angeboten werden, gef&uuml;hrt werden.</p>
+		<p>Dauer eines Gespr&auml;chs <strong>max. 5 Minuten</strong>; l&auml;ngere Gespr&auml;che m&uuml;ssen in den Sprechstunden der LehrerInnen, die allw&ouml;chentlich angeboten werden, gef&uuml;hrt werden. Pro Lehrer ist nur eine Reservierung m&ouml;glich.</p>
+		
+		<br/>
 
-		<p>Sie k&ouml;nnen bis zum <span class="textEmphasis">{{ @varExists('settings.endTime') ? @settings.endTime : "???" }}</span> neue Reservierungen vornehmen oder bestehende Reservierungen &auml;ndern. Danach wird die Webseite gesperrt und Sie k&ouml;nnen Ihre bereits vorgenommenen Reservierungen nur noch lesen und ausdrucken, aber nicht mehr &auml;ndern.</p>
+		<p>Sie k&ouml;nnen bis zum <strong>{{ @varExists('settings.endTime') ? @settings.endTime : "???" }}</strong> neue Reservierungen vornehmen oder bestehende Reservierungen &auml;ndern. Danach wird die Webseite gesperrt und Sie k&ouml;nnen Ihre bereits vorgenommenen Reservierungen nur noch lesen und ausdrucken, aber nicht mehr &auml;ndern.</p>
 
+		<br/>
+		
 		<p>Bei Problemen/Fragen wenden Sie sich bitte per Mail/Telefon an die Schule (siehe <a href="/impressum">Kontakt/Impressum</a>)</p>
+		</div>
 	</body>
 </html>
