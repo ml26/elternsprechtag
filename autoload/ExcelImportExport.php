@@ -162,7 +162,8 @@ class ExcelImportExport
 		(
 			schueler_id INTEGER NOT NULL PRIMARY KEY ASC, 
 			name VARCHAR(100) NOT NULL,
-			klasse VARCHAR(10) NOT NULL
+			klasse VARCHAR(10) NOT NULL,
+			UNIQUE (name)
 		);");
 		$db->exec("
 		CREATE TABLE EINSTELLUNGEN

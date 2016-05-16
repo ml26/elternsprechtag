@@ -19,7 +19,7 @@
 					<select name="schueler_name" id="schueler_name" class="form-control">
 						<option value="" selected disabled></option>
 						<repeat group="{{ @allSchueler }}" value="{{ @schueler }}">
-							<option>{{ @schueler['name'] }} ({{ @schueler['klasse'] }})</option>
+							<option>{{ @schueler['name'] }}</option>
 						</repeat>
 					</select>
 				</div>
