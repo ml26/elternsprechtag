@@ -10,6 +10,11 @@ class HandlerBase
 			}
 		);
 		$f3->set('location', 'home');
+		
+		
+		$allLehrer = DbWrapper::getLehrerBySchuelerId($f3->get('db'), $f3->get('COOKIE.user_id'));
+		$f3->set('allLehrer', $allLehrer);
+		$f3->set('curLehrer', array('lehrer_id'=>-1));
     }
 
     function afterRoute($f3) {

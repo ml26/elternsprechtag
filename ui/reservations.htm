@@ -9,7 +9,7 @@
 		<div class="container">
 			<include href="header.htm" />
 
-			<div class="col-md-2">
+			<!-- <div class="col-md-2">
 				<div class="panel panel-default">
 				<div class="panel-heading">Lehrer</div>
 					<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
@@ -17,9 +17,10 @@
 							href="/lehrer/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a>
 					</repeat>
 				</div>
-			</div>
+			</div> -->
 		
-			<div class="col-md-10">
+			<!-- <div class="col-md-10"> -->
+			<div >
 				<h2>{{ @curLehrer.name }}</h2>
 				<p>Raum: {{ @curLehrer.raum }}</p>
 				<check if="{{ @varExists('error') }}">
@@ -91,5 +92,7 @@
 				</table>
 			</div>
 		</div>
+		
+		<include href="htmlFooter.htm" />
 	</body>
 </html>

@@ -1,3 +1,5 @@
+<!-- <script src="/ui/js/bootstrap.min.js"></script> -->
+
 <nav class="navbar navbar-default">
 	<div class="navbar-header">
 		<img class="navbar-brand" src="/ui/images/icon.png" />
@@ -6,7 +8,16 @@
 		<li class="{{ @location == 'home' ? 'active' : '' }}">
 			
 			<a href="/">HOME</a></li>
-		<li class="{{ @location == 'lehrer_reserve' ? 'active' : '' }}"><a href="/lehrer/1">Termine reservieren</a></li>
+		<!-- <li class="{{ @location == 'lehrer_reserve' ? 'active' : '' }}"><a href="/lehrer/1">Termine reservieren</a></li> -->
+		<li class="dropdown {{ @location == 'lehrer_reserve' ? 'active' : '' }}">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Termine reservieren <span class="caret"></span></a>
+			<ul class="dropdown-menu">
+				<repeat group="{{ @allLehrer }}" value="{{ @lehrer }}">
+					<li><a class="{{@curLehrer.lehrer_id==@lehrer.lehrer_id?'bg-primary':''}}"
+						href="/lehrer/{{ @lehrer.lehrer_id }}">{{ @lehrer.name }}</a></li>
+				</repeat>
+			</ul>
+		</li>
 		<li class="{{ @location == 'user_summary' ? 'active' : '' }}"><a href="/reservierungen">Meine Termine</a></li>
 		<li class="{{ @location == 'impressum' ? 'active' : '' }}"><a href="/impressum">Kontakt/Impressum</a></li>
 		<check if="{{ isset(@isAdmin) && @isAdmin }}">
