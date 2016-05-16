@@ -16,7 +16,7 @@ class LehrerGet extends HandlerBase
 		$curLehrer = DbWrapper::getLehrerById($db, $params['id']);
 		$f3->set('curLehrer', $curLehrer);
 	
-		$allLehrer = DbWrapper::getAllLehrer($db);
+		$allLehrer = DbWrapper::getLehrerBySchuelerId($db, $f3->get('COOKIE.user_id'));
 		$f3->set('allLehrer', $allLehrer);
 		
 		$reservations = DbWrapper::getReservationsByLehrerId($db, $params['id'], $f3->get('COOKIE.user_id'));

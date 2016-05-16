@@ -37,7 +37,7 @@ class DbWrapper
 	
 	public static function getAllSchueler($db) {
         $result = $db->exec("
-			SELECT schueler_id, name 
+			SELECT schueler_id, name, klasse
 			FROM SCHUELER 
 			ORDER BY name"
 		);
@@ -46,7 +46,7 @@ class DbWrapper
 	
 	public static function getAllLehrer($db) {
         $result = $db->exec("
-			SELECT lehrer_id, name, raum
+			SELECT lehrer_id, name, raum, klassen
 			FROM LEHRER 
 			ORDER BY name"
 		);
@@ -184,8 +184,17 @@ class DbWrapper
 		return $result;
 	}
 	
-	
-	
+	public static function getLehrerBySchuelerId($db, $schuelerId) {
+		$result = $db->exec("
+			SELECT L.lehrer_id, L.name, L.raum
+			FROM lehrer L
+			JOIN lehrer_klassen LK ON LK.lehrer_id = L.lehrer_id
+			JOIN schueler S ON S.schueler_id = :schueler_id AND S.klasse = LK.klasse
+			ORDER BY L.name", 
+			array(':schueler_id'=>$schuelerId)
+		);
+		return $result;
+	}
 	
 	
 	public static function insertReservation($db, $lehrerId, $zeitId, $schuelerId) {

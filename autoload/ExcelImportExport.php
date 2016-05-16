@@ -21,13 +21,16 @@ class ExcelImportExport
 		$activeSheet->SetCellValue('A1', 'lehrer_id');
 		$activeSheet->SetCellValue('B1', 'name');
 		$activeSheet->SetCellValue('C1', 'raum');
+		$activeSheet->SetCellValue('D1', 'klassen');
 		$activeSheet->getColumnDimension('B')->setAutoSize(true);
 		$activeSheet->getColumnDimension('C')->setAutoSize(true);
+		$activeSheet->getColumnDimension('D')->setAutoSize(true);
 		$rowCounter = 2;
 		foreach (DbWrapper::getAllLehrer($db) as $lehrer) {
 			$activeSheet->SetCellValue('A'.$rowCounter, $lehrer['lehrer_id']);
 			$activeSheet->SetCellValue('B'.$rowCounter, $lehrer['name']);
 			$activeSheet->SetCellValue('C'.$rowCounter, $lehrer['raum']);
+			$activeSheet->SetCellValue('D'.$rowCounter, $lehrer['klassen']);
 			// $objPHPExcel->getActiveSheet()->SetCellValue('D'.$rowCounter, json_encode($lehrer));
 			$rowCounter = $rowCounter + 1;
 		}
@@ -36,11 +39,14 @@ class ExcelImportExport
 		$activeSheet->setTitle('SCHUELER');
 		$activeSheet->SetCellValue('A1', 'schueler_id');
 		$activeSheet->SetCellValue('B1', 'name');
+		$activeSheet->SetCellValue('C1', 'klasse');
 		$activeSheet->getColumnDimension('B')->setAutoSize(true);
+		$activeSheet->getColumnDimension('C')->setAutoSize(true);
 		$rowCounter = 2;
 		foreach (DbWrapper::getAllSchueler($db) as $schueler) {
 			$activeSheet->SetCellValue('A'.$rowCounter, $schueler['schueler_id']);
 			$activeSheet->SetCellValue('B'.$rowCounter, $schueler['name']);
+			$activeSheet->SetCellValue('C'.$rowCounter, $schueler['klasse']);
 			$rowCounter = $rowCounter + 1;
 		}
 		
@@ -119,6 +125,7 @@ class ExcelImportExport
 			ExcelImportExport::$lastExecutedStatement = $statement;
 			$db->exec($statement);
 		}
+		ExcelImportExport::importLehrerKlassen($db);
 		ExcelImportExport::writeDefaultSettings($db);
 		
 		$temp = '';
@@ -128,6 +135,7 @@ class ExcelImportExport
 	private static function dropExistingTables($db) {
 		$db->exec("DROP TABLE IF EXISTS RESERVIERUNGEN");
 		$db->exec("DROP TABLE IF EXISTS SPERRUNGEN");
+		$db->exec("DROP TABLE IF EXISTS LEHRER_KLASSEN");
 		$db->exec("DROP TABLE IF EXISTS LEHRER");
 		$db->exec("DROP TABLE IF EXISTS ZEITEN");
 		$db->exec("DROP TABLE IF EXISTS SCHUELER");
@@ -140,7 +148,8 @@ class ExcelImportExport
 		(
 			lehrer_id INTEGER NOT NULL PRIMARY KEY ASC, 
 			name VARCHAR(50) NOT NULL,
-			raum VARCHAR(30) NOT NULL
+			raum VARCHAR(30) NOT NULL,
+			klassen VARCHAR(100) NOT NULL
 		)");
 		$db->exec("
 		CREATE TABLE ZEITEN
@@ -152,7 +161,8 @@ class ExcelImportExport
 		CREATE TABLE SCHUELER
 		(
 			schueler_id INTEGER NOT NULL PRIMARY KEY ASC, 
-			name VARCHAR(100) NOT NULL
+			name VARCHAR(100) NOT NULL,
+			klasse VARCHAR(10) NOT NULL
 		);");
 		$db->exec("
 		CREATE TABLE EINSTELLUNGEN
@@ -181,8 +191,15 @@ class ExcelImportExport
 			FOREIGN KEY (lehrer_id) REFERENCES LEHRER(lehrer_id),
 			FOREIGN KEY (zeit_id) REFERENCES ZEITEN(zeit_id)
 		);");
-		
-		//
+		$db->exec("
+		CREATE TABLE LEHRER_KLASSEN
+		(
+			lehrer_id INTEGER NOT NULL,
+			klasse VARCHAR(10) NOT NULL,
+			PRIMARY KEY (lehrer_id, klasse),
+			FOREIGN KEY (lehrer_id) REFERENCES LEHRER(lehrer_id),
+			UNIQUE (lehrer_id, klasse)
+		);");
 	}
 	
 	private static function writeDefaultSetting($db, $name, $value) {
@@ -263,8 +280,33 @@ class ExcelImportExport
 		return $insertStatements;
 	}
 	
-	private static function stringEndsWith($haystack, $needle)
-	{
+	private static function importLehrerKlassen($db) {
+		$allLehrer = $db->exec("
+			SELECT lehrer_id, klassen
+			FROM LEHRER"
+		);
+		
+		foreach ($allLehrer as $lehrer) {
+			$klassen = preg_split('/[\s,;]+/', $lehrer["klassen"], -1, PREG_SPLIT_NO_EMPTY);
+			foreach ($klassen as $klasse) {
+			
+				$db->exec("
+					INSERT INTO LEHRER_KLASSEN (lehrer_id, klasse)
+					SELECT :lehrer_id, :klasse
+					WHERE NOT EXISTS
+					(
+						SELECT 1
+						FROM LEHRER_KLASSEN
+						WHERE lehrer_id = :lehrer_id
+						AND klasse = :klasse
+					)", 
+					array(':lehrer_id'=>$lehrer["lehrer_id"], ':klasse'=>$klasse)
+				);
+			}
+		}
+	}
+	
+	private static function stringEndsWith($haystack, $needle) {
 		return $needle === "" || substr($haystack, -strlen($needle)) === $needle;
 	}
 	
