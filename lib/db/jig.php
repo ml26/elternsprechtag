@@ -1,21 +1,28 @@
 <?php
 
 /*
-	Copyright (c) 2009-2013 F3::Factory/Bong Cosca, All rights reserved.
 
-	This file is part of the Fat-Free Framework (http://fatfree.sf.net).
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
-	THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF
-	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-	PURPOSE.
+	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
-	Please see the license.txt file for more information.
+	This is free software: you can redistribute it and/or modify it under the
+	terms of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or later.
+
+	Fat-Free Framework is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along
+	with Fat-Free Framework.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 namespace DB;
 
-//! Flat-file DB wrapper
+//! In-memory/flat-file DB wrapper
 class Jig {
 
 	//@{ Storage formats
@@ -32,17 +39,22 @@ class Jig {
 		//! Current storage format
 		$format,
 		//! Jig log
-		$log;
+		$log,
+		//! Memory-held data
+		$data;
 
 	/**
-	*	Read data from file
+	*	Read data from memory/file
 	*	@return array
 	*	@param $file string
 	**/
-	function read($file) {
+	function &read($file) {
+		if (!$this->dir || !is_file($dst=$this->dir.$file)) {
+			if (!isset($this->data[$file]))
+				$this->data[$file]=[];
+			return $this->data[$file];
+		}
 		$fw=\Base::instance();
-		if (!is_file($dst=$this->dir.$file))
-			return array();
 		$raw=$fw->read($dst);
 		switch ($this->format) {
 			case self::FORMAT_JSON:
@@ -52,27 +64,29 @@ class Jig {
 				$data=$fw->unserialize($raw);
 				break;
 		}
-		return $data;
+		$this->data[$file] = $data;
+		return $this->data[$file];
 	}
 
 	/**
-	*	Write data to file
+	*	Write data to memory/file
 	*	@return int
 	*	@param $file string
 	*	@param $data array
 	**/
 	function write($file,array $data=NULL) {
+		if (!$this->dir)
+			return count($this->data[$file]=$data);
 		$fw=\Base::instance();
 		switch ($this->format) {
 			case self::FORMAT_JSON:
-				$out=json_encode($data,@constant('JSON_PRETTY_PRINT'));
+				$out=json_encode($data,JSON_PRETTY_PRINT);
 				break;
 			case self::FORMAT_Serialized:
 				$out=$fw->serialize($data);
 				break;
 		}
-		$out=$fw->write($this->dir.$file,$out);
-		return $out;
+		return $fw->write($this->dir.'/'.$file,$out);
 	}
 
 	/**
@@ -92,11 +106,14 @@ class Jig {
 	}
 
 	/**
-	*	Return SQL profiler results
+	*	Return profiler results (or disable logging)
+	*	@param $flag bool
 	*	@return string
 	**/
-	function log() {
-		return $this->log;
+	function log($flag=TRUE) {
+		if ($flag)
+			return $this->log;
+		$this->log=FALSE;
 	}
 
 	/**
@@ -114,9 +131,15 @@ class Jig {
 	*	@return NULL
 	**/
 	function drop() {
-		if ($glob=@glob($this->dir.'/*',GLOB_NOSORT))
+		if (!$this->dir)
+			$this->data=[];
+		elseif ($glob=@glob($this->dir.'/*',GLOB_NOSORT))
 			foreach ($glob as $file)
 				@unlink($file);
+	}
+
+	//! Prohibit cloning
+	private function __clone() {
 	}
 
 	/**
@@ -124,8 +147,8 @@ class Jig {
 	*	@param $dir string
 	*	@param $format int
 	**/
-	function __construct($dir,$format=self::FORMAT_JSON) {
-		if (!is_dir($dir))
+	function __construct($dir=NULL,$format=self::FORMAT_JSON) {
+		if ($dir && !is_dir($dir))
 			mkdir($dir,\Base::MODE,TRUE);
 		$this->uuid=\Base::instance()->hash($this->dir=$dir);
 		$this->format=$format;

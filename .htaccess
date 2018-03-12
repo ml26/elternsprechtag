@@ -10,6 +10,14 @@ RewriteEngine On
 #
 # RewriteBase /
 
+RewriteRule autoload/.*$ - [R=404]
+RewriteRule db/.*$ - [R=404]
+RewriteRule exports/.*$ - [R=404]
+RewriteRule imports/.*$ - [R=404]
+RewriteRule lib/.*$ - [R=404]
+RewriteRule tmp/.*$ - [R=404]
+RewriteRule ui/.htm$ - [R=404]
+
 RewriteCond %{REQUEST_URI} \.ini$
 RewriteRule \.ini$ - [R=404]
 

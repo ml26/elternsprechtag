@@ -1,16 +1,23 @@
 <?php
 
 /*
-	Copyright (c) 2009-2013 F3::Factory/Bong Cosca, All rights reserved.
 
-	This file is part of the Fat-Free Framework (http://fatfree.sf.net).
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
-	THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF
-	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-	PURPOSE.
+	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
-	Please see the license.txt file for more information.
+	This is free software: you can redistribute it and/or modify it under the
+	terms of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or later.
+
+	Fat-Free Framework is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along
+	with Fat-Free Framework.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 //! Data validator
@@ -18,7 +25,7 @@ class Audit extends Prefab {
 
 	//@{ User agents
 	const
-		UA_Mobile='android|blackberry|iphone|ipod|palm|windows\s+ce',
+		UA_Mobile='android|blackberry|phone|ipod|palm|windows\s+ce',
 		UA_Desktop='bsd|linux|os\s+[x9]|solaris|windows',
 		UA_Bot='bot|crawl|slurp|spider';
 	//@}
@@ -40,7 +47,7 @@ class Audit extends Prefab {
 	*	@param $mx boolean
 	**/
 	function email($str,$mx=TRUE) {
-		$hosts=array();
+		$hosts=[];
 		return is_string(filter_var($str,FILTER_VALIDATE_EMAIL)) &&
 			(!$mx || getmxrr(substr($str,strrpos($str,'@')+1),$hosts));
 	}
@@ -51,7 +58,7 @@ class Audit extends Prefab {
 	*	@param $addr string
 	**/
 	function ipv4($addr) {
-		return filter_var($addr,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4);
+		return (bool)filter_var($addr,FILTER_VALIDATE_IP,FILTER_FLAG_IPV4);
 	}
 
 	/**
@@ -97,28 +104,34 @@ class Audit extends Prefab {
 	/**
 	*	Return TRUE if user agent is a desktop browser
 	*	@return bool
+	*	@param $agent string
 	**/
-	function isdesktop() {
-		$agent=Base::instance()->get('AGENT');
+	function isdesktop($agent=NULL) {
+		if (!isset($agent))
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Desktop.')/i',$agent) &&
-			!$this->ismobile();
+			!$this->ismobile($agent);
 	}
 
 	/**
 	*	Return TRUE if user agent is a mobile device
 	*	@return bool
+	*	@param $agent string
 	**/
-	function ismobile() {
-		$agent=Base::instance()->get('AGENT');
+	function ismobile($agent=NULL) {
+		if (!isset($agent))
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Mobile.')/i',$agent);
 	}
 
 	/**
 	*	Return TRUE if user agent is a Web bot
 	*	@return bool
+	*	@param $agent string
 	**/
-	function isbot() {
-		$agent=Base::instance()->get('AGENT');
+	function isbot($agent=NULL) {
+		if (!isset($agent))
+			$agent=Base::instance()->AGENT;
 		return (bool)preg_match('/('.self::UA_Bot.')/i',$agent);
 	}
 
@@ -153,7 +166,8 @@ class Audit extends Prefab {
 				return 'Discover';
 			if (preg_match('/^(?:2131|1800|35\d{3})\d{11}$/',$id))
 				return 'JCB';
-			if (preg_match('/^5[1-5][0-9]{14}$/',$id))
+			if (preg_match('/^5[1-5][0-9]{14}$|'.
+				'^(222[1-9]|2[3-6]\d{2}|27[0-1]\d|2720)\d{12}$/',$id))
 				return 'MasterCard';
 			if (preg_match('/^4[0-9]{12}(?:[0-9]{3})?$/',$id))
 				return 'Visa';
@@ -163,7 +177,7 @@ class Audit extends Prefab {
 
 	/**
 	*	Return entropy estimate of a password (NIST 800-63)
-	*	@return int
+	*	@return int|float
 	*	@param $str string
 	**/
 	function entropy($str) {

@@ -1,16 +1,23 @@
 <?php
 
 /*
-	Copyright (c) 2009-2013 F3::Factory/Bong Cosca, All rights reserved.
 
-	This file is part of the Fat-Free Framework (http://fatfree.sf.net).
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
-	THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF
-	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-	PURPOSE.
+	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
-	Please see the license.txt file for more information.
+	This is free software: you can redistribute it and/or modify it under the
+	terms of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or later.
+
+	Fat-Free Framework is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along
+	with Fat-Free Framework.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 //! Image manipulation tools
@@ -19,7 +26,10 @@ class Image {
 	//@{ Messages
 	const
 		E_Color='Invalid color specified: %s',
-		E_Font='CAPTCHA font not found';
+		E_File='File not found',
+		E_Font='CAPTCHA font not found',
+		E_TTF='No TrueType support in GD module',
+		E_Length='Invalid CAPTCHA length: %s';
 	//@}
 
 	//@{ Positional cues
@@ -32,7 +42,7 @@ class Image {
 		POS_Bottom=32;
 	//@}
 
-	private
+	protected
 		//! Source filename
 		$file,
 		//! Image resource
@@ -45,12 +55,14 @@ class Image {
 	/**
 	*	Convert RGB hex triad to array
 	*	@return array|FALSE
-	*	@param $color int
+	*	@param $color int|string
 	**/
 	function rgb($color) {
+		if (is_string($color))
+			$color=hexdec($color);
 		$hex=str_pad($hex=dechex($color),$color<4096?3:6,'0',STR_PAD_LEFT);
 		if (($len=strlen($hex))>6)
-			user_error(sprintf(self::E_Color,'0x'.$hex));
+			user_error(sprintf(self::E_Color,'0x'.$hex),E_USER_ERROR);
 		$color=str_split($hex,$len/3);
 		foreach ($color as &$hue) {
 			$hue=hexdec(str_repeat($hue,6/$len));
@@ -216,14 +228,23 @@ class Image {
 	*	@param $crop bool
 	*	@param $enlarge bool
 	**/
-	function resize($width,$height,$crop=TRUE,$enlarge=TRUE) {
+	function resize($width=NULL,$height=NULL,$crop=TRUE,$enlarge=TRUE) {
+		if (is_null($width) && is_null($height))
+			return $this;
+		$origw=$this->width();
+		$origh=$this->height();
+		if (is_null($width))
+			$width=round(($height/$origh)*$origw);
+		if (is_null($height))
+			$height=round(($width/$origw)*$origh);
 		// Adjust dimensions; retain aspect ratio
-		$ratio=($origw=imagesx($this->data))/($origh=imagesy($this->data));
-		if (!$crop)
+		$ratio=$origw/$origh;
+		if (!$crop) {
 			if ($width/$ratio<=$height)
-				$height=$width/$ratio;
+				$height=round($width/$ratio);
 			else
-				$width=$height*$ratio;
+				$width=round($height*$ratio);
+		}
 		if (!$enlarge) {
 			$width=min($origw,$width);
 			$height=min($origh,$height);
@@ -235,12 +256,12 @@ class Image {
 		// Resize
 		if ($crop) {
 			if ($width/$ratio<=$height) {
-				$cropw=$origh*$width/$height;
+				$cropw=round($origh*$width/$height);
 				imagecopyresampled($tmp,$this->data,
 					0,0,($origw-$cropw)/2,0,$width,$height,$cropw,$origh);
 			}
 			else {
-				$croph=$origw*$height/$width;
+				$croph=round($origw*$height/$width);
 				imagecopyresampled($tmp,$this->data,
 					0,0,0,($origh-$croph)/2,$width,$height,$origw,$croph);
 			}
@@ -269,11 +290,16 @@ class Image {
 	*	Apply an image overlay
 	*	@return object
 	*	@param $img object
-	*	@param $align int
+	*	@param $align int|array
+	*	@param $alpha int
 	**/
-	function overlay(Image $img,$align=NULL) {
+	function overlay(Image $img,$align=NULL,$alpha=100) {
 		if (is_null($align))
 			$align=self::POS_Right|self::POS_Bottom;
+		if (is_array($align)) {
+			list($posx,$posy)=$align;
+			$align = 0;
+		}
 		$ovr=imagecreatefromstring($img->dump());
 		imagesavealpha($ovr,TRUE);
 		$imgw=$this->width();
@@ -296,7 +322,15 @@ class Image {
 			$posx=0;
 		if (empty($posy))
 			$posy=0;
-		imagecopy($this->data,$ovr,$posx,$posy,0,0,$ovrw,$ovrh);
+		if ($alpha==100)
+			imagecopy($this->data,$ovr,$posx,$posy,0,0,$ovrw,$ovrh);
+		else {
+			$cut=imagecreatetruecolor($ovrw,$ovrh);
+			imagecopy($cut,$this->data,0,0,$posx,$posy,$ovrw,$ovrh);
+			imagecopy($cut,$ovr,0,0,0,0,$ovrw,$ovrh);
+			imagecopymerge($this->data,
+				$cut,$posx,$posy,0,0,$ovrw,$ovrh,$alpha);
+		}
 		return $this->save();
 	}
 
@@ -308,44 +342,39 @@ class Image {
 	*	@param $blocks int
 	**/
 	function identicon($str,$size=64,$blocks=4) {
-		$sprites=array(
-			array(.5,1,1,0,1,1),
-			array(.5,0,1,0,.5,1,0,1),
-			array(.5,0,1,0,1,1,.5,1,1,.5),
-			array(0,.5,.5,0,1,.5,.5,1,.5,.5),
-			array(0,.5,1,0,1,1,0,1,1,.5),
-			array(1,0,1,1,.5,1,1,.5,.5,.5),
-			array(0,0,1,0,1,.5,0,0,.5,1,0,1),
-			array(0,0,.5,0,1,.5,.5,1,0,1,.5,.5),
-			array(.5,0,.5,.5,1,.5,1,1,.5,1,.5,.5,0,.5),
-			array(0,0,1,0,.5,.5,1,.5,.5,1,.5,.5,0,1),
-			array(0,.5,.5,1,1,.5,.5,0,1,0,1,1,0,1),
-			array(.5,0,1,0,1,1,.5,1,1,.75,.5,.5,1,.25),
-			array(0,.5,.5,0,.5,.5,1,0,1,.5,.5,1,.5,.5,0,1),
-			array(0,0,1,0,1,1,0,1,1,.5,.5,.25,.5,.75,0,.5,.5,.25),
-			array(0,.5,.5,.5,.5,0,1,0,.5,.5,1,.5,.5,1,.5,.5,0,1),
-			array(0,0,1,0,.5,.5,.5,0,0,.5,1,.5,.5,1,.5,.5,0,1)
-		);
+		$sprites=[
+			[.5,1,1,0,1,1],
+			[.5,0,1,0,.5,1,0,1],
+			[.5,0,1,0,1,1,.5,1,1,.5],
+			[0,.5,.5,0,1,.5,.5,1,.5,.5],
+			[0,.5,1,0,1,1,0,1,1,.5],
+			[1,0,1,1,.5,1,1,.5,.5,.5],
+			[0,0,1,0,1,.5,0,0,.5,1,0,1],
+			[0,0,.5,0,1,.5,.5,1,0,1,.5,.5],
+			[.5,0,.5,.5,1,.5,1,1,.5,1,.5,.5,0,.5],
+			[0,0,1,0,.5,.5,1,.5,.5,1,.5,.5,0,1],
+			[0,.5,.5,1,1,.5,.5,0,1,0,1,1,0,1],
+			[.5,0,1,0,1,1,.5,1,1,.75,.5,.5,1,.25],
+			[0,.5,.5,0,.5,.5,1,0,1,.5,.5,1,.5,.5,0,1],
+			[0,0,1,0,1,1,0,1,1,.5,.5,.25,.5,.75,0,.5,.5,.25],
+			[0,.5,.5,.5,.5,0,1,0,.5,.5,1,.5,.5,1,.5,.5,0,1],
+			[0,0,1,0,.5,.5,.5,0,0,.5,1,.5,.5,1,.5,.5,0,1]
+		];
+		$hash=sha1($str);
 		$this->data=imagecreatetruecolor($size,$size);
-		list($r,$g,$b)=$this->rgb(mt_rand(0x333,0xCCC));
+		list($r,$g,$b)=$this->rgb(hexdec(substr($hash,-3)));
 		$fg=imagecolorallocate($this->data,$r,$g,$b);
 		imagefill($this->data,0,0,IMG_COLOR_TRANSPARENT);
-		$hash=sha1($str);
 		$ctr=count($sprites);
 		$dim=$blocks*floor($size/$blocks)*2/$blocks;
 		for ($j=0,$y=ceil($blocks/2);$j<$y;$j++)
 			for ($i=$j,$x=$blocks-1-$j;$i<$x;$i++) {
 				$sprite=imagecreatetruecolor($dim,$dim);
 				imagefill($sprite,0,0,IMG_COLOR_TRANSPARENT);
-				if ($block=$sprites[
-					hexdec($hash[($j*$blocks+$i)*2])%$ctr]) {
-					for ($k=0,$pts=count($block);$k<$pts;$k++)
-						$block[$k]*=$dim;
-					imagefilledpolygon($sprite,$block,$pts/2,$fg);
-				}
-				$sprite=imagerotate($sprite,
-					90*(hexdec($hash[($j*$blocks+$i)*2+1])%4),
-					imagecolorallocatealpha($sprite,0,0,0,127));
+				$block=$sprites[hexdec($hash[($j*$blocks+$i)*2])%$ctr];
+				for ($k=0,$pts=count($block);$k<$pts;$k++)
+					$block[$k]*=$dim;
+				imagefilledpolygon($sprite,$block,$pts/2,$fg);
 				for ($k=0;$k<4;$k++) {
 					imagecopyresampled($this->data,$sprite,
 						$i*$dim/2,$j*$dim/2,0,0,$dim/2,$dim/2,$dim,$dim);
@@ -366,31 +395,45 @@ class Image {
 	*	@param $len int
 	*	@param $key string
 	*	@param $path string
+	*	@param $fg int
+	*	@param $bg int
 	**/
-	function captcha($font,$size=24,$len=5,$key=NULL,$path='') {
+	function captcha($font,$size=24,$len=5,
+		$key=NULL,$path='',$fg=0xFFFFFF,$bg=0x000000) {
+		if ((!$ssl=extension_loaded('openssl')) && ($len<4 || $len>13)) {
+			user_error(sprintf(self::E_Length,$len),E_USER_ERROR);
+			return FALSE;
+		}
+		if (!function_exists('imagettftext')) {
+			user_error(self::E_TTF,E_USER_ERROR);
+			return FALSE;
+		}
 		$fw=Base::instance();
-		foreach ($fw->split($path?:$fw->get('UI')) as $dir)
+		foreach ($fw->split($path?:$fw->UI.';./') as $dir)
 			if (is_file($path=$dir.$font)) {
-				$seed=strtoupper(substr(uniqid(NULL,TRUE),-$len));
+				$seed=strtoupper(substr(
+					$ssl?bin2hex(openssl_random_pseudo_bytes($len)):uniqid(),
+					-$len));
 				$block=$size*3;
-				$tmp=array();
+				$tmp=[];
 				for ($i=0,$width=0,$height=0;$i<$len;$i++) {
 					// Process at 2x magnification
 					$box=imagettfbbox($size*2,0,$path,$seed[$i]);
 					$w=$box[2]-$box[0];
 					$h=$box[1]-$box[5];
 					$char=imagecreatetruecolor($block,$block);
-					imagefill($char,0,0,0);
+					imagefill($char,0,0,$bg);
 					imagettftext($char,$size*2,0,
 						($block-$w)/2,$block-($block-$h)/2,
-						0xFFFFFF,$path,$seed[$i]);
+						$fg,$path,$seed[$i]);
 					$char=imagerotate($char,mt_rand(-30,30),
 						imagecolorallocatealpha($char,0,0,0,127));
 					// Reduce to normal size
 					$tmp[$i]=imagecreatetruecolor(
 						($w=imagesx($char))/2,($h=imagesy($char))/2);
 					imagefill($tmp[$i],0,0,IMG_COLOR_TRANSPARENT);
-					imagecopyresampled($tmp[$i],$char,0,0,0,0,$w/2,$h/2,$w,$h);
+					imagecopyresampled($tmp[$i],
+						$char,0,0,0,0,$w/2,$h/2,$w,$h);
 					imagedestroy($char);
 					$width+=$i+1<$len?$block/2:$w/2;
 					$height=max($height,$h/2);
@@ -405,10 +448,10 @@ class Image {
 				}
 				imagesavealpha($this->data,TRUE);
 				if ($key)
-					$fw->set($key,$seed);
+					$fw->$key=$seed;
 				return $this->save();
 			}
-		user_error(self::E_Font);
+		user_error(self::E_Font,E_USER_ERROR);
 		return FALSE;
 	}
 
@@ -437,10 +480,12 @@ class Image {
 		$format=$args?array_shift($args):'png';
 		if (PHP_SAPI!='cli') {
 			header('Content-Type: image/'.$format);
-			header('X-Powered-By: '.Base::instance()->get('PACKAGE'));
+			header('X-Powered-By: '.Base::instance()->PACKAGE);
 		}
-		call_user_func_array('image'.$format,
-			array_merge(array($this->data),$args));
+		call_user_func_array(
+			'image'.$format,
+			array_merge([$this->data,NULL],$args)
+		);
 	}
 
 	/**
@@ -451,9 +496,19 @@ class Image {
 		$args=func_get_args();
 		$format=$args?array_shift($args):'png';
 		ob_start();
-		call_user_func_array('image'.$format,
-			array_merge(array($this->data),$args));
+		call_user_func_array(
+			'image'.$format,
+			array_merge([$this->data,NULL],$args)
+		);
 		return ob_get_clean();
+	}
+
+	/**
+	*	Return image resource
+	*	@return resource
+	**/
+	function data() {
+		return $this->data;
 	}
 
 	/**
@@ -463,11 +518,10 @@ class Image {
 	function save() {
 		$fw=Base::instance();
 		if ($this->flag) {
-			if (!is_dir($dir=$fw->get('TEMP')))
+			if (!is_dir($dir=$fw->TEMP))
 				mkdir($dir,Base::MODE,TRUE);
 			$this->count++;
-			$fw->write($dir.'/'.
-				$fw->hash($fw->get('ROOT').$fw->get('BASE')).'.'.
+			$fw->write($dir.'/'.$fw->SEED.'.'.
 				$fw->hash($this->file).'-'.$this->count.'.png',
 				$this->dump());
 		}
@@ -481,9 +535,8 @@ class Image {
 	**/
 	function restore($state=1) {
 		$fw=Base::instance();
-		if ($this->flag && is_file($file=($path=$fw->get('TEMP').
-			$fw->hash($fw->get('ROOT').$fw->get('BASE')).'.'.
-			$fw->hash($this->file).'-').$state.'.png')) {
+		if ($this->flag && is_file($file=($path=$fw->TEMP.
+			$fw->SEED.'.'.$fw->hash($this->file).'-').$state.'.png')) {
 			if (is_resource($this->data))
 				imagedestroy($this->data);
 			$this->data=imagecreatefromstring($fw->read($file));
@@ -511,23 +564,36 @@ class Image {
 	}
 
 	/**
+	*	Load string
+	*	@return object|FALSE
+	*	@param $str string
+	**/
+	function load($str) {
+		if (!$this->data=@imagecreatefromstring($str))
+			return FALSE;
+		imagesavealpha($this->data,TRUE);
+		$this->save();
+		return $this;
+	}
+
+	/**
 	*	Instantiate image
 	*	@param $file string
 	*	@param $flag bool
 	*	@param $path string
 	**/
-	function __construct($file=NULL,$flag=FALSE,$path='') {
+	function __construct($file=NULL,$flag=FALSE,$path=NULL) {
 		$this->flag=$flag;
 		if ($file) {
 			$fw=Base::instance();
 			// Create image from file
 			$this->file=$file;
-			foreach ($fw->split($path?:$fw->get('UI')) as $dir)
-				if (is_file($dir.$file)) {
-					$this->data=imagecreatefromstring($fw->read($dir.$file));
-					imagesavealpha($this->data,TRUE);
-					$this->save();
-				}
+			if (!isset($path))
+				$path=$fw->UI.';./';
+			foreach ($fw->split($path,FALSE) as $dir)
+				if (is_file($dir.$file))
+					return $this->load($fw->read($dir.$file));
+			user_error(self::E_File,E_USER_ERROR);
 		}
 	}
 
@@ -539,9 +605,7 @@ class Image {
 		if (is_resource($this->data)) {
 			imagedestroy($this->data);
 			$fw=Base::instance();
-			$path=$fw->get('TEMP').
-				$fw->hash($fw->get('ROOT').$fw->get('BASE')).'.'.
-				$fw->hash($this->file);
+			$path=$fw->TEMP.$fw->SEED.'.'.$fw->hash($this->file);
 			if ($glob=@glob($path.'*.png',GLOB_NOSORT))
 				foreach ($glob as $match)
 					if (preg_match('/-(\d+)\.png/',$match))

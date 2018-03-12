@@ -1,16 +1,23 @@
 <?php
 
 /*
-	Copyright (c) 2009-2013 F3::Factory/Bong Cosca, All rights reserved.
 
-	This file is part of the Fat-Free Framework (http://fatfree.sf.net).
+	Copyright (c) 2009-2017 F3::Factory/Bong Cosca, All rights reserved.
 
-	THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF
-	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A PARTICULAR
-	PURPOSE.
+	This file is part of the Fat-Free Framework (http://fatfreeframework.com).
 
-	Please see the license.txt file for more information.
+	This is free software: you can redistribute it and/or modify it under the
+	terms of the GNU General Public License as published by the Free Software
+	Foundation, either version 3 of the License, or later.
+
+	Fat-Free Framework is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along
+	with Fat-Free Framework.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
 //! Authorization/authentication plug-in
@@ -22,7 +29,7 @@ class Auth {
 		E_SMTP='SMTP connection failure';
 	//@}
 
-	private
+	protected
 		//! Auth storage
 		$storage,
 		//! Mapper object
@@ -40,19 +47,19 @@ class Auth {
 	protected function _jig($id,$pw,$realm) {
 		return (bool)
 			call_user_func_array(
-				array($this->mapper,'findone'),
-				array(
+				[$this->mapper,'load'],
+				[
 					array_merge(
-						array(
+						[
 							'@'.$this->args['id'].'==? AND '.
 							'@'.$this->args['pw'].'==?'.
 							(isset($this->args['realm'])?
 								(' AND @'.$this->args['realm'].'==?'):''),
 							$id,$pw
-						),
-						(isset($this->args['realm'])?array($realm):array())
+						],
+						(isset($this->args['realm'])?[$realm]:[])
 					)
-				)
+				]
 			);
 	}
 
@@ -65,13 +72,13 @@ class Auth {
 	**/
 	protected function _mongo($id,$pw,$realm) {
 		return (bool)
-			$this->mapper->findone(
-				array(
+			$this->mapper->load(
+				[
 					$this->args['id']=>$id,
 					$this->args['pw']=>$pw
-				)+
+				]+
 				(isset($this->args['realm'])?
-					array($this->args['realm']=>$realm):array())
+					[$this->args['realm']=>$realm]:[])
 			);
 	}
 
@@ -85,19 +92,19 @@ class Auth {
 	protected function _sql($id,$pw,$realm) {
 		return (bool)
 			call_user_func_array(
-				array($this->mapper,'findone'),
-				array(
+				[$this->mapper,'load'],
+				[
 					array_merge(
-						array(
+						[
 							$this->args['id'].'=? AND '.
 							$this->args['pw'].'=?'.
 							(isset($this->args['realm'])?
 								(' AND '.$this->args['realm'].'=?'):''),
 							$id,$pw
-						),
-						(isset($this->args['realm'])?array($realm):array())
+						],
+						(isset($this->args['realm'])?[$realm]:[])
 					)
-				)
+				]
 			);
 	}
 
@@ -108,20 +115,29 @@ class Auth {
 	*	@param $pw string
 	**/
 	protected function _ldap($id,$pw) {
-		$dc=@ldap_connect($this->args['dc']);
+		$port=(int)($this->args['port']?:389);
+		$filter=$this->args['filter']=$this->args['filter']?:"uid=".$id;
+		$this->args['attr']=$this->args['attr']?:["uid"];
+		array_walk($this->args['attr'],
+		function($attr)use(&$filter,$id) {
+			$filter=str_ireplace($attr."=*",$attr."=".$id,$filter);});
+		$dc=@ldap_connect($this->args['dc'],$port);
 		if ($dc &&
 			ldap_set_option($dc,LDAP_OPT_PROTOCOL_VERSION,3) &&
 			ldap_set_option($dc,LDAP_OPT_REFERRALS,0) &&
 			ldap_bind($dc,$this->args['rdn'],$this->args['pw']) &&
 			($result=ldap_search($dc,$this->args['base_dn'],
-				'uid='.$id)) &&
+				$filter,$this->args['attr'])) &&
 			ldap_count_entries($dc,$result) &&
 			($info=ldap_get_entries($dc,$result)) &&
+			$info['count']==1 &&
 			@ldap_bind($dc,$info[0]['dn'],$pw) &&
 			@ldap_close($dc)) {
-			return $info[0]['uid'][0]==$id;
+			return in_array($id,(array_map(function($value){return $value[0];},
+				array_intersect_key($info[0],
+					array_flip($this->args['attr'])))),TRUE);
 		}
-		user_error(self::E_LDAP);
+		user_error(self::E_LDAP,E_USER_ERROR);
 	}
 
 	/**
@@ -153,12 +169,12 @@ class Auth {
 			stream_set_blocking($socket,TRUE);
 			$dialog();
 			$fw=Base::instance();
-			$dialog('EHLO '.$fw->get('HOST'));
+			$dialog('EHLO '.$fw->HOST);
 			if (strtolower($this->args['scheme'])=='tls') {
 				$dialog('STARTTLS');
 				stream_socket_enable_crypto(
 					$socket,TRUE,STREAM_CRYPTO_METHOD_TLS_CLIENT);
-				$dialog('EHLO '.$fw->get('HOST'));
+				$dialog('EHLO '.$fw->HOST);
 			}
 			// Authenticate
 			$dialog('AUTH LOGIN');
@@ -168,7 +184,7 @@ class Auth {
 			fclose($socket);
 			return (bool)preg_match('/^235 /',$reply);
 		}
-		user_error(self::E_SMTP);
+		user_error(self::E_SMTP,E_USER_ERROR);
 	}
 
 	/**
@@ -189,11 +205,15 @@ class Auth {
 	**/
 	function basic($func=NULL) {
 		$fw=Base::instance();
-		$realm=$fw->get('REALM');
+		$realm=$fw->REALM;
+		$hdr=NULL;
 		if (isset($_SERVER['HTTP_AUTHORIZATION']))
+			$hdr=$_SERVER['HTTP_AUTHORIZATION'];
+		elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']))
+			$hdr=$_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+		if (!empty($hdr))
 			list($_SERVER['PHP_AUTH_USER'],$_SERVER['PHP_AUTH_PW'])=
-				explode(':',base64_decode(
-					substr($_SERVER['HTTP_AUTHORIZATION'],6)));
+				explode(':',base64_decode(substr($hdr,6)));
 		if (isset($_SERVER['PHP_AUTH_USER'],$_SERVER['PHP_AUTH_PW']) &&
 			$this->login(
 				$_SERVER['PHP_AUTH_USER'],
@@ -217,8 +237,7 @@ class Auth {
 	**/
 	function __construct($storage,array $args=NULL) {
 		if (is_object($storage) && is_a($storage,'DB\Cursor')) {
-			$ref=new ReflectionClass(get_class($storage));
-			$this->storage=basename(dirname($ref->getfilename()));
+			$this->storage=$storage->dbtype();
 			$this->mapper=$storage;
 			unset($ref);
 		}
