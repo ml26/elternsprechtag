@@ -37,7 +37,7 @@ class DbWrapper
 	
 	public static function getAllSchueler($db) {
         $result = $db->exec("
-			SELECT schueler_id, name, klasse
+			SELECT schueler_id, name, klasse, login_code
 			FROM SCHUELER 
 			ORDER BY name"
 		);

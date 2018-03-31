@@ -40,13 +40,16 @@ class ExcelImportExport
 		$activeSheet->SetCellValue('A1', 'schueler_id');
 		$activeSheet->SetCellValue('B1', 'name');
 		$activeSheet->SetCellValue('C1', 'klasse');
+		$activeSheet->SetCellValue('D1', 'login_code');
 		$activeSheet->getColumnDimension('B')->setAutoSize(true);
 		$activeSheet->getColumnDimension('C')->setAutoSize(true);
+		$activeSheet->getColumnDimension('D')->setAutoSize(true);
 		$rowCounter = 2;
 		foreach (DbWrapper::getAllSchueler($db) as $schueler) {
 			$activeSheet->SetCellValue('A'.$rowCounter, $schueler['schueler_id']);
 			$activeSheet->SetCellValue('B'.$rowCounter, $schueler['name']);
 			$activeSheet->SetCellValue('C'.$rowCounter, $schueler['klasse']);
+			$activeSheet->SetCellValue('D'.$rowCounter, $schueler['login_code']);
 			$rowCounter = $rowCounter + 1;
 		}
 		
@@ -163,7 +166,9 @@ class ExcelImportExport
 			schueler_id INTEGER NOT NULL PRIMARY KEY ASC, 
 			name VARCHAR(100) NOT NULL,
 			klasse VARCHAR(10) NOT NULL,
-			UNIQUE (name)
+			login_code VARCHAR(10) NOT NULL,
+			UNIQUE (name),
+			UNIQUE (login_code)
 		);");
 		$db->exec("
 		CREATE TABLE EINSTELLUNGEN
