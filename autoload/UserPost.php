@@ -7,7 +7,11 @@ class UserPost extends HandlerBase
             try {
                 $schuelerId = DbWrapper::getSchuelerIdByLoginCode($f3->get('db'), $login_code);
                 Logger::Info($f3, "UserPost.login", "Code: {$login_code}, Id: {$schuelerId}");
-                $f3->set('COOKIE.user_id', $schuelerId);
+                if (!$schuelerId) {
+                    $f3->reroute('/login');
+                    return;
+                }
+                $f3->set('COOKIE.login_code', $login_code);
                 $f3->reroute('/');
             } catch (Exception $e) {
                 Logger::Error($f3, "UserPost.login", 

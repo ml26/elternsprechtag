@@ -23,9 +23,9 @@ class UserGet extends HandlerBase
     
     function logout($f3) {
         if( $this->isLoggedIn($f3) ) {
-            $userId = $f3->get('COOKIE.user_id');
-            Logger::Info($f3, "UserGet.logout", "User: {$userId}");
-            $f3->clear('COOKIE.user_id');
+            $loginCode = $f3->get('COOKIE.login_code');
+            Logger::Info($f3, "UserGet.logout", "Code: {$loginCode}");
+            $f3->clear('COOKIE.login_code');
         }
         $f3->reroute('/login');
     }
@@ -44,8 +44,9 @@ class UserGet extends HandlerBase
             $f3->set('location', 'user_summary');
             
             $db = $f3->get('db');
-            $f3->set('schuelerName', $this->getCurrentSchuelerName($f3));
-            $f3->set('reservations', DbWrapper::getReservationsByUserId($db, $f3->get('COOKIE.user_id')));
+            $curSchuelerId = $this->getCurrentSchuelerId($f3);
+            $f3->set('schuelerName', DbWrapper::getSchuelerNameById($db, $curSchuelerId));
+            $f3->set('reservations', DbWrapper::getReservationsByUserId($db, $curSchuelerId));
             echo Template::instance()->render('userSummary.htm');
         } else {
             $f3->reroute('/login');
