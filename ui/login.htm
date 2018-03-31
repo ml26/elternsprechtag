@@ -11,17 +11,12 @@
 			<br/>
 			
 			<p>Melden Sie sich hier an, um Gespr&auml;chstermine f&uuml;r den Elternsprechtag des Missions-Privatgymnasiums St. Rupert zu reservieren.</p>
-			<p>W&auml;hlen Sie den Namen Ihres Kindes aus:</p>
+			<p>Geben sie den Login Code f&uuml;r Ihr Kind ein, den Sie per Brief erhalten haben:</p>
 
 			<form method="post" class="form form-inline">
 				<div class="form-group">
-					<label for="schueler_name">Name:</label>
-					<select name="schueler_name" id="schueler_name" class="form-control">
-						<option value="" selected disabled></option>
-						<repeat group="{{ @allSchueler }}" value="{{ @schueler }}">
-							<option>{{ @schueler['name'] }}</option>
-						</repeat>
-					</select>
+					<label for="login_code">Login Code:</label>
+					<input type="text" name="login_code" id="login_code" class="form-control" />
 				</div>
 				<input type="submit" value="Anmelden" class="form-control" /><br/>
 			</form> 
