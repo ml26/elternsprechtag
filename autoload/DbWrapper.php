@@ -19,7 +19,7 @@ class DbWrapper
         $result = $db->exec("
             SELECT schueler_id 
             FROM SCHUELER 
-            WHERE UPPER(login_code) LIKE UPPER(:login_code)", 
+            WHERE UPPER(login_code) = UPPER(:login_code)", 
             array(':login_code'=>$login_code)
         );
         return $result[0]["schueler_id"];
@@ -29,7 +29,7 @@ class DbWrapper
         $result = $db->exec("
             SELECT name 
             FROM SCHUELER 
-            WHERE schueler_id LIKE :id", 
+            WHERE schueler_id = :id", 
             array(':id'=>$schuelerId)
         );
         return $result[0]["name"];
