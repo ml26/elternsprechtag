@@ -10,6 +10,8 @@ RewriteEngine On
 #
 # RewriteBase /
 
+FileETag None
+
 RewriteRule autoload/.*$ - [R=404]
 RewriteRule db/.*$ - [R=404]
 RewriteRule exports/.*$ - [R=404]

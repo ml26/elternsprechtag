@@ -1,7 +1,6 @@
 <?php
 
 //TODO: add gdpr disclaimer
-//TODO: Lizenz auf GPL wechseln?
 
 $f3=require('lib/base.php');
 $f3->set('UI','ui/');
