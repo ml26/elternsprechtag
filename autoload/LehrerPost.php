@@ -17,14 +17,8 @@ class LehrerPost extends HandlerBase
                     $userId
                 );
             } catch (Exception $e) {
-                Logger::Error($f3, "LehrerPost.reserve", 
-                    "Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
-                    
-                if (strpos($e->getMessage(), 'PDOStatement: UNIQUE constraint failed') !== false) {
-                    $errorQueryString = '?errorMessage=Sie haben bei diesem Lehrer bereits einen anderen Termin gebucht';
-                } else {
-                    $errorQueryString = '?errorMessage=Reservierung konnte nicht durchgeführt werden';
-                }
+                Logger::Error($f3, "LehrerPost.reserve", "Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
+                $errorQueryString = $this->buildErrorMessage($e);
             }
         }
         $f3->reroute('/lehrer/'.$lehrerId.$errorQueryString);
@@ -45,11 +39,25 @@ class LehrerPost extends HandlerBase
                     $userId
                 );
             } catch (Exception $e) {
-                Logger::Error($f3, "LehrerPost.release", 
-                    "Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
+                Logger::Error($f3, "LehrerPost.release", "Lehrer: {$lehrerId}, Error: {$e->getMessage()}");
             }
         }
         $f3->reroute('/lehrer/'.$lehrerId);
+    }
+    
+    function buildErrorMessage($e) {
+        if ($this->messageContains($e, 'UNIQUE constraint failed') && $this->messageContains($e, 'lehrer_id')) {
+            if ($this->messageContains($e, 'zeit_id')) {
+                return '?errorMessage=Dieser Termin ist bereits reserviert';
+            } else if ($this->messageContains($e, 'schueler_id')) {
+                return '?errorMessage=Sie haben bei diesem Lehrer bereits einen anderen Termin gebucht';
+            }
+        }
+        return '?errorMessage=Reservierung konnte nicht durchgeführt werden';
+    }
+    
+    function messageContains($e, $str) {
+        return strpos($e->getMessage(), $str) !== false;
     }
 }
 

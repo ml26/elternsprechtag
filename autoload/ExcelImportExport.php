@@ -152,7 +152,8 @@ class ExcelImportExport
 			lehrer_id INTEGER NOT NULL PRIMARY KEY ASC, 
 			name VARCHAR(50) NOT NULL,
 			raum VARCHAR(30) NOT NULL,
-			klassen VARCHAR(100) NOT NULL
+			klassen VARCHAR(1000) NOT NULL,
+			UNIQUE (name)
 		)");
 		$db->exec("
 		CREATE TABLE ZEITEN
