@@ -1,5 +1,9 @@
 <?php
 
+//TODO: remove logging
+//TODO: add gdpr disclaimer
+//TODO: Lizenz auf GPL wechseln?
+
 $f3=require('lib/base.php');
 $f3->set('UI','ui/');
 $f3->set('AUTOLOAD','autoload/');
@@ -8,13 +12,12 @@ $f3->set('UPLOADS',$f3->get('tmp'));
 $dbFile = 'db/data.sqlite';
 $isNewDb = !file_exists($dbFile) || filesize($dbFile) === 0;
 $f3->set('db',new DB\SQL('sqlite:'.$dbFile));
-$f3->set('log',new DB\SQL('sqlite:db/log.sqlite'));
 if ($isNewDb) {
 	ExcelImportExport::importFromExcel2007($f3->get('db'), 'db/bootstrap.xlsx');
 }
 
 
-Logger::Initialize($f3->get('log'));
+Logger::Initialize($f3);
 
 //$f3->set('DEBUG',3);
 
