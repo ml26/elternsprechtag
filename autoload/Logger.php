@@ -3,15 +3,15 @@
 class Logger
 {
     public static function Info($f3, $source, $text) {
-        Logger::Write($f3->get('log'), $source, $text, 'I');
+//         Logger::Write($f3->get('log'), $source, $text, 'I');
     }
     
     public static function Warn($f3, $source, $text) {
-        Logger::Write($f3->get('log'), $source, $text, 'W');
+//         Logger::Write($f3->get('log'), $source, $text, 'W');
     }
     
     public static function Error($f3, $source, $text) {
-        Logger::Write($f3->get('log'), $source, $text, 'E');
+//         Logger::Write($f3->get('log'), $source, $text, 'E');
     }
     
     private static function Write($logDb, $source, $text, $type) {
@@ -23,7 +23,7 @@ class Logger
     }
     
     public static function Initialize($f3) {
-        $f3->set('log',new DB\SQL('sqlite:db/log.sqlite'));
+//         $f3->set('log',new DB\SQL('sqlite:db/log.sqlite'));
 //         $f3->get('log')->exec("
 //         CREATE TABLE IF NOT EXISTS LOGS
 //         (

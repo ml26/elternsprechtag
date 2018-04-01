@@ -1,6 +1,5 @@
 <?php
 
-//TODO: remove logging
 //TODO: add gdpr disclaimer
 //TODO: Lizenz auf GPL wechseln?
 
